@@ -77,4 +77,4 @@ jobs:
 
       - name: Sync build to S3
         run: |
-          aws s3 sync ./dist s3://actions-sandbox --delete --acl public-read
+          aws s3 sync ./dist s3://actions-sandbox --delete
