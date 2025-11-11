@@ -65,35 +65,13 @@ jobs:
     environment: staging
     steps:
 
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      # --- Production Deploy ---
-      - name: Deploy to Production
-        if: github.ref == 'refs/heads/main'
+      - name: Sync build to S3
         run: |
-          # Ensure .vercel/output/static contains the built dist files
-          mkdir -p .vercel/output/static
-          if [ -d ./dist ]; then
-            cp -r ./dist/. .vercel/output/static/
-          fi
-          mkdir -p .vercel
-          proj_id="${{ secrets.VERCEL_PROJECT_ID }}"
-          org_id="${{ secrets.VERCEL_ORG_ID }}"
-          printf '%s\n' "{\"projectId\":\"${proj_id}\",\"orgId\":\"${org_id}\"}" > .vercel/project.json
-          npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt --prod --yes --confirm
-
-      # --- Staging Deploy ---
-      - name: Deploy to Staging
-        if: github.ref == 'refs/heads/dev'
-        run: |
-          # Ensure .vercel/output/static contains the built dist files
-          mkdir -p .vercel/output/static
-          if [ -d ./dist ]; then
-            cp -r ./dist/. .vercel/output/static/
-          fi
-          mkdir -p .vercel
-          proj_id="${{ secrets.VERCEL_PROJECT_ID }}"
-          org_id="${{ secrets.VERCEL_ORG_ID }}"
-          printf '%s\n' "{\"projectId\":\"${proj_id}\",\"orgId\":\"${org_id}\"}" > .vercel/project.json
-          npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt --prod --yes --confirm
+          aws s3 sync ./dist s3://actions-sandbox --delete --acl public-read
