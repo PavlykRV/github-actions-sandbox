@@ -25,11 +25,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Compute VITE_BASE
+        # Compute VITE_BASE so project sites are published under '/<repo>/'
+        # while user/org sites (repos like 'owner.github.io') use '/'. This
+        # writes the variable to $GITHUB_ENV so subsequent steps inherit it.
+        run: |
+          repo="${GITHUB_REPOSITORY##*/}"
+          if [[ "$repo" == *.github.io ]]; then
+            echo "VITE_BASE=/" >> $GITHUB_ENV
+          else
+            echo "VITE_BASE=/$repo/" >> $GITHUB_ENV
+          fi
+
+      - name: Show computed base
+        run: echo "Using VITE_BASE='$VITE_BASE'"
+
       - name: Build
-        # For GitHub Pages project sites we set VITE_BASE so the built assets
-        # use the repo subpath. Update the value below if your repo name differs.
-        env:
-          VITE_BASE: '/github-actions-sandbox/'
+        # VITE_BASE (set above) will be available in the environment for this step
         run: npm run build
 
       - name: Upload artifact for GitHub Pages
