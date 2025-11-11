@@ -21,7 +21,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     # Use a GitHub Environment so environment-scoped secrets are applied.
-    environment: "${{ github.event.inputs.environment && github.event.inputs.environment != '' ? github.event.inputs.environment : (github.ref == 'refs/heads/main' ? 'production' : 'staging') }}"
+    environment: '${{ github.event.inputs.environment || (github.ref == "refs/heads/main" && "production" || "staging") }}'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     # Deploy should use the same environment as the build so environment
     # protections (if any) apply to deployment as well.
-    environment: "${{ github.event.inputs.environment && github.event.inputs.environment != '' ? github.event.inputs.environment : (github.ref == 'refs/heads/main' ? 'production' : 'staging') }}"
+    environment: '${{ github.event.inputs.environment || (github.ref == "refs/heads/main" && "production" || "staging") }}'
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
