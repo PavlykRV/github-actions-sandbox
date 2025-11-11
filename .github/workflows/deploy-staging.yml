@@ -74,8 +74,8 @@ jobs:
         run: |
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             echo "Deploying to PROD..."
-            npx vercel --prod --confirm --token "$VERCEL_TOKEN" --org "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+            npx vercel --prod --confirm --token "$VERCEL_TOKEN" --project "$VERCEL_PROJECT_ID"
           else
             echo "Deploying to PREVIEW (staging/PR)..."
-            npx vercel --confirm --token "$VERCEL_TOKEN" --org "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+            npx vercel --confirm --token "$VERCEL_TOKEN" --project "$VERCEL_PROJECT_ID"
           fi
