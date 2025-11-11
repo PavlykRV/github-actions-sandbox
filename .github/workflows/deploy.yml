@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages test
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -20,6 +20,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Use a GitHub Environment so environment-scoped secrets are applied.
+    environment: "${{ github.event.inputs.environment && github.event.inputs.environment != '' ? github.event.inputs.environment : (github.ref == 'refs/heads/main' ? 'production' : 'staging') }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,38 +29,25 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '18'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Set environment variables
-        # Determine target environment (workflow input > branch). Write
-        # ENVIRONMENT, TEST_ENV_VARIABLE (from secrets) and VITE_BASE to
-        # $GITHUB_ENV so they are available to subsequent steps.
+      - name: Export environment-scoped secret
+        # When the job-level `environment` is set, environment-scoped secrets
+        # (configured under Settings → Environments) named TEST_ENV_VARIABLE
+        # will be available as `secrets.TEST_ENV_VARIABLE`. Export it into
+        # GITHUB_ENV so Vite can read it as a plain environment variable.
         run: |
-          # Determine env from workflow_dispatch input if provided
-          if [ -n "${{ github.event.inputs.environment }}" ]; then
-            env_choice="${{ github.event.inputs.environment }}"
+          if [ -n "${{ secrets.TEST_ENV_VARIABLE }}" ]; then
+            echo "TEST_ENV_VARIABLE=${{ secrets.TEST_ENV_VARIABLE }}" >> $GITHUB_ENV
           else
-            branch="${GITHUB_REF#refs/heads/}"
-            if [ "$branch" = "main" ]; then
-              env_choice=production
-            else
-              env_choice=staging
-            fi
+            echo "TEST_ENV_VARIABLE=" >> $GITHUB_ENV
           fi
 
-          echo "ENVIRONMENT=$env_choice" >> $GITHUB_ENV
-
-          # Map TEST_ENV_VARIABLE from variables depending on environment.
-          if [ "$env_choice" = "production" ]; then
-            echo "TEST_ENV_VARIABLE=${{ variables.TEST_ENV_VARIABLE }}" >> $GITHUB_ENV
-          else
-            echo "TEST_ENV_VARIABLE=${{ variables.TEST_ENV_VARIABLE }}" >> $GITHUB_ENV
-          fi
-
-          # Compute VITE_BASE (same logic as before)
+      - name: Compute VITE_BASE
+        run: |
           repo="${GITHUB_REPOSITORY##*/}"
           if [[ "$repo" == *.github.io ]]; then
             echo "VITE_BASE=/" >> $GITHUB_ENV
@@ -68,13 +57,10 @@ jobs:
 
       - name: Show computed values
         run: |
-          echo "ENVIRONMENT=$ENVIRONMENT"
+          echo "ENVIRONMENT=${{ job.environment }}"
           echo "VITE_BASE=$VITE_BASE"
 
       - name: Build
-        # VITE_BASE and TEST_ENV_VARIABLE (set above) will be available in the
-        # environment for this step and Vite will pick them up via
-        # `vite.config.ts`.
         run: npm run build
 
       - name: Upload artifact for GitHub Pages
@@ -85,6 +71,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    # Deploy should use the same environment as the build so environment
+    # protections (if any) apply to deployment as well.
+    environment: "${{ github.event.inputs.environment && github.event.inputs.environment != '' ? github.event.inputs.environment : (github.ref == 'refs/heads/main' ? 'production' : 'staging') }}"
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4

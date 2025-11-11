@@ -15,7 +15,17 @@ Important Vite configuration
 Workflow configuration
 
 - The workflow file is `.github/workflows/deploy.yml`.
-- It sets `VITE_BASE` to `/github-actions-sandbox/` by default so the built files reference the correct subpath for this repo.
+- The workflow computes `VITE_BASE` dynamically from the repository name so you don't need to hardcode the repo path.
+
+Environments and environment-scoped variables
+
+- The workflow uses GitHub Environments to load environment-scoped secrets. It chooses an environment in this order:
+  1. `workflow_dispatch` input named `environment` (if you run the workflow manually), or
+  2. `main` branch => `production`, any other branch => `staging`.
+
+- Create two Environments in the repository settings named `production` and `staging` (Settings → Environments). In each environment add a secret named `TEST_ENV_VARIABLE` with the appropriate value for that environment.
+
+- During the run the job is assigned to the chosen Environment and the secret `TEST_ENV_VARIABLE` will be available as `secrets.TEST_ENV_VARIABLE`. The workflow exports it into the environment so Vite can read it during build.
 
 If your repository name or owner differs
 
