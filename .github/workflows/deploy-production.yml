@@ -51,5 +51,25 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Deploy to GitHub Pages (production)
-        uses: actions/deploy-pages@v4
+      # - name: Deploy to GitHub Pages (production)
+      #   uses: actions/deploy-pages@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      # - name: Deploy to GitHub Pages (staging)
+      #   uses: actions/deploy-pages@v4
+
+      - name: Deploy to Vercel (staging branch -> preview, main -> production)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "Deploying to PROD..."
+            npx vercel --prod --confirm --token "$VERCEL_TOKEN" --org "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+          else
+            echo "Deploying to PREVIEW (staging/PR)..."
+            npx vercel --confirm --token "$VERCEL_TOKEN" --org "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+          fi
