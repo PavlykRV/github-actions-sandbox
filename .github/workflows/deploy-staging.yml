@@ -46,16 +46,18 @@ jobs:
           else
             echo "VITE_BASE=/$repo/" >> $GITHUB_ENV
           fi
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
+ 
 
-      - name: Vercel Build
-        run: vercel build
+      - name: Build
+        run: npm run build
+        env:
+          TEST_ENV_VARIABLE: ${{ vars.TEST_ENV_VARIABLE }}
 
-      - name: Upload artifact for Vercel
+      - name: Upload artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .vercel/output
+          name: dist
+          path: ./dist
 
   deploy:
     needs: build
@@ -63,17 +65,20 @@ jobs:
     environment: staging
     steps:
 
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
       # --- Production Deploy ---
       - name: Deploy to Production
         if: github.ref == 'refs/heads/main'
         run: |
-          # Create runtime .vercel/project.json to pin the target project/org
-          mkdir -p .vercel
-          if [ -n "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
-            proj_id="${{ secrets.VERCEL_PROJECT_ID }}"
-          else
-            proj_id="${{ secrets.VERCEL_STAGING_PROJECT_ID }}"
+          # Ensure .vercel/output/static contains the built dist files
+          mkdir -p .vercel/output/static
+          if [ -d ./dist ]; then
+            cp -r ./dist/. .vercel/output/static/
           fi
+          mkdir -p .vercel
+          proj_id="${{ secrets.VERCEL_PROJECT_ID }}"
           org_id="${{ secrets.VERCEL_ORG_ID }}"
           printf '%s\n' "{\"projectId\":\"${proj_id}\",\"orgId\":\"${org_id}\"}" > .vercel/project.json
           npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt --prod --yes --confirm
@@ -82,14 +87,13 @@ jobs:
       - name: Deploy to Staging
         if: github.ref == 'refs/heads/dev'
         run: |
-          mkdir -p .vercel
-          # Prefer an explicit staging project id, fallback to VERCEL_PROJECT_ID
-          if [ -n "${{ secrets.VERCEL_STAGING_PROJECT_ID }}" ]; then
-            proj_id="${{ secrets.VERCEL_STAGING_PROJECT_ID }}"
-          else
-            proj_id="${{ secrets.VERCEL_PROJECT_ID }}"
+          # Ensure .vercel/output/static contains the built dist files
+          mkdir -p .vercel/output/static
+          if [ -d ./dist ]; then
+            cp -r ./dist/. .vercel/output/static/
           fi
+          mkdir -p .vercel
+          proj_id="${{ secrets.VERCEL_PROJECT_ID }}"
           org_id="${{ secrets.VERCEL_ORG_ID }}"
           printf '%s\n' "{\"projectId\":\"${proj_id}\",\"orgId\":\"${org_id}\"}" > .vercel/project.json
-          # For preview/staging, avoid --prod so Vercel creates a preview deploy
           npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt --prod --yes --confirm
