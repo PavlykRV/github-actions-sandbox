@@ -60,16 +60,16 @@ jobs:
       # - name: Deploy to GitHub Pages (staging)
       #   uses: actions/deploy-pages@v4
 
-      - name: Deploy to Vercel (staging branch -> preview, main -> production)
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+       # --- Production Deploy ---
+      - name: Deploy to Production
+        if: github.ref == 'refs/heads/main'
         run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "Deploying to PROD..."
-            npx vercel --prod --confirm --token "$VERCEL_TOKEN"  --project "$VERCEL_PROJECT_ID"
-          else
-            echo "Deploying to PREVIEW (staging/PR)..."
-            npx vercel --confirm --token "$VERCEL_TOKEN"  --project "$VERCEL_PROJECT_ID"
-          fi
+          cp -r .vercel/prod .vercel
+          npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prod --yes --confirm
+
+      # --- Staging Deploy ---
+      - name: Deploy to Staging
+        if: github.ref == 'refs/heads/staging'
+        run: |
+          cp -r .vercel/staging .vercel
+          npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prod --yes --confirm
