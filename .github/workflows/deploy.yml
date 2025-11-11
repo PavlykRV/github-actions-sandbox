@@ -20,20 +20,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
 
       - name: Install dependencies
         run: npm ci
 
       - name: Build
         # For GitHub Pages project sites we set VITE_BASE so the built assets
-        # use the repo subpath. The value is computed from the pushed repository
-        # name so this workflow can be reused across forks/orgs without editing.
-        # If you are publishing a user/organization site (owner.github.io) you
-        # may want to set VITE_BASE to '/' instead; this workflow assumes a
-        # project site and uses '/<repo>/' by default.
+        # use the repo subpath. Update the value below if your repo name differs.
         env:
-          VITE_BASE: "/${{ github.event.repository.name }}/"
+          VITE_BASE: '/github-actions-sandbox/'
         run: npm run build
 
       - name: Upload artifact for GitHub Pages
@@ -46,4 +42,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v1
