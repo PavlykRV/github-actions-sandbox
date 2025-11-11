@@ -76,7 +76,7 @@ jobs:
           fi
           org_id="${{ secrets.VERCEL_ORG_ID }}"
           printf '%s\n' "{\"projectId\":\"${proj_id}\",\"orgId\":\"${org_id}\"}" > .vercel/project.json
-          npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prod --yes --confirm
+          npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt --prod --yes --confirm
 
       # --- Staging Deploy ---
       - name: Deploy to Staging
@@ -92,4 +92,4 @@ jobs:
           org_id="${{ secrets.VERCEL_ORG_ID }}"
           printf '%s\n' "{\"projectId\":\"${proj_id}\",\"orgId\":\"${org_id}\"}" > .vercel/project.json
           # For preview/staging, avoid --prod so Vercel creates a preview deploy
-          npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prod --yes --confirm
+          npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt --prod --yes --confirm
