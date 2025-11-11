@@ -46,22 +46,22 @@ jobs:
           else
             echo "VITE_BASE=/$repo/" >> $GITHUB_ENV
           fi
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
 
-      - name: Build
-        run: npm run build
+      - name: Vercel Build
+        run: vercel build
 
-      - name: Upload artifact for GitHub Pages
+      - name: Upload artifact for Vercel
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./dist
+          path: .vercel/output
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     environment: staging
     steps:
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
 
       # --- Production Deploy ---
       - name: Deploy to Production
