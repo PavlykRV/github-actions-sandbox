@@ -54,15 +54,33 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
+      # --- Production Deploy ---
       - name: Deploy to Production
         if: github.ref == 'refs/heads/main'
         run: |
-          cp -r .vercel/prod .vercel
+          # Create runtime .vercel/project.json to pin the target project/org
+          mkdir -p .vercel
+          if [ -n "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+            proj_id="${{ secrets.VERCEL_PROJECT_ID }}"
+          else
+            proj_id="${{ secrets.VERCEL_STAGING_PROJECT_ID }}"
+          fi
+          org_id="${{ secrets.VERCEL_ORG_ID }}"
+          printf '%s\n' "{\"projectId\":\"${proj_id}\",\"orgId\":\"${org_id}\"}" > .vercel/project.json
           npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prod --yes --confirm
 
       # --- Staging Deploy ---
       - name: Deploy to Staging
         if: github.ref == 'refs/heads/dev'
         run: |
-          cp -r .vercel/staging .vercel
+          mkdir -p .vercel
+          # Prefer an explicit staging project id, fallback to VERCEL_PROJECT_ID
+          if [ -n "${{ secrets.VERCEL_STAGING_PROJECT_ID }}" ]; then
+            proj_id="${{ secrets.VERCEL_STAGING_PROJECT_ID }}"
+          else
+            proj_id="${{ secrets.VERCEL_PROJECT_ID }}"
+          fi
+          org_id="${{ secrets.VERCEL_ORG_ID }}"
+          printf '%s\n' "{\"projectId\":\"${proj_id}\",\"orgId\":\"${org_id}\"}" > .vercel/project.json
+          # For preview/staging, avoid --prod so Vercel creates a preview deploy
           npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prod --yes --confirm
