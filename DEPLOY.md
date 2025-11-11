@@ -27,6 +27,27 @@ Environments and environment-scoped variables
 
 - During the run the job is assigned to the chosen Environment and the secret `TEST_ENV_VARIABLE` will be available as `secrets.TEST_ENV_VARIABLE`. The workflow exports it into the environment so Vite can read it during build.
 
+Separate staging/production workflows
+
+- I split the single workflow into two files so each one is simple and only runs for its branch:
+  - `.github/workflows/deploy-staging.yml` — triggers on `develop` (and manual runs), uses the `staging` Environment.
+  - `.github/workflows/deploy-production.yml` — triggers on `main` (and manual runs), uses the `production` Environment.
+
+Reading and passing multiple environment-scoped secrets
+
+- GitHub exposes environment-scoped secrets to a job only when that job's `environment` matches. The workflow exports the secret named `TEST_ENV_VARIABLE` into the build environment so Vite can read it.
+- Important limitation: GitHub Actions does not provide a way inside a workflow to enumerate environment-scoped secret names and automatically export all values. To export additional secrets you have three options:
+  1. Add more explicit export steps in the workflow. Example (for secret named `ANOTHER_VAR`):
+
+     - name: Export ANOTHER_VAR
+       run: |
+         if [ -n "${{ secrets.ANOTHER_VAR }}" ]; then
+           echo "ANOTHER_VAR=${{ secrets.ANOTHER_VAR }}" >> $GITHUB_ENV
+         fi
+
+  2. Use a fixed list of expected secret names and add corresponding steps to export them.
+  3. If you require dynamic listing, you must use an external controller (script or GitHub App) to read environment secret names and inject them into the workflow via inputs — this is more complex and typically unnecessary.
+
 If your repository name or owner differs
 
 - Update the `VITE_BASE` value in the workflow so it matches your repository path exactly. It must start and end with a slash, for example `/my-repo/`.
