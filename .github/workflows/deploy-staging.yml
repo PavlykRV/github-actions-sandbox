@@ -48,13 +48,11 @@ jobs:
           fi
  
 
-      - name: Build artifact
+      - name: Build (Vite)
         run: npm run build
-        env:
-          TEST_ENV_VARIABLE: ${{ vars.TEST_ENV_VARIABLE }}
 
-      - name: Upload artifact for GitHub Pages
-        uses: actions/upload-pages-artifact@v4
+      - name: Upload `dist` artifact
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: ./dist
@@ -64,6 +62,11 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
+      - name: Download `dist` artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: ./dist
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
