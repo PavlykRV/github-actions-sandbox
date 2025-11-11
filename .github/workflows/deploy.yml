@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment (staging or production). If empty, branch is used (main => production, others => staging).'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -25,11 +32,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Compute VITE_BASE
-        # Compute VITE_BASE so project sites are published under '/<repo>/'
-        # while user/org sites (repos like 'owner.github.io') use '/'. This
-        # writes the variable to $GITHUB_ENV so subsequent steps inherit it.
+      - name: Set environment variables
+        # Determine target environment (workflow input > branch). Write
+        # ENVIRONMENT, TEST_ENV_VARIABLE (from secrets) and VITE_BASE to
+        # $GITHUB_ENV so they are available to subsequent steps.
         run: |
+          # Determine env from workflow_dispatch input if provided
+          if [ -n "${{ github.event.inputs.environment }}" ]; then
+            env_choice="${{ github.event.inputs.environment }}"
+          else
+            branch="${GITHUB_REF#refs/heads/}"
+            if [ "$branch" = "main" ]; then
+              env_choice=production
+            else
+              env_choice=staging
+            fi
+          fi
+
+          echo "ENVIRONMENT=$env_choice" >> $GITHUB_ENV
+
+          # Map TEST_ENV_VARIABLE from variables depending on environment.
+          if [ "$env_choice" = "production" ]; then
+            echo "TEST_ENV_VARIABLE=${{ variables.TEST_ENV_VARIABLE }}" >> $GITHUB_ENV
+          else
+            echo "TEST_ENV_VARIABLE=${{ variables.TEST_ENV_VARIABLE }}" >> $GITHUB_ENV
+          fi
+
+          # Compute VITE_BASE (same logic as before)
           repo="${GITHUB_REPOSITORY##*/}"
           if [[ "$repo" == *.github.io ]]; then
             echo "VITE_BASE=/" >> $GITHUB_ENV
@@ -37,11 +66,15 @@ jobs:
             echo "VITE_BASE=/$repo/" >> $GITHUB_ENV
           fi
 
-      - name: Show computed base
-        run: echo "Using VITE_BASE='$VITE_BASE'"
+      - name: Show computed values
+        run: |
+          echo "ENVIRONMENT=$ENVIRONMENT"
+          echo "VITE_BASE=$VITE_BASE"
 
       - name: Build
-        # VITE_BASE (set above) will be available in the environment for this step
+        # VITE_BASE and TEST_ENV_VARIABLE (set above) will be available in the
+        # environment for this step and Vite will pick them up via
+        # `vite.config.ts`.
         run: npm run build
 
       - name: Upload artifact for GitHub Pages
