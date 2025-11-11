@@ -27,9 +27,13 @@ jobs:
 
       - name: Build
         # For GitHub Pages project sites we set VITE_BASE so the built assets
-        # use the repo subpath. Update the value below if your repo name differs.
+        # use the repo subpath. The value is computed from the pushed repository
+        # name so this workflow can be reused across forks/orgs without editing.
+        # If you are publishing a user/organization site (owner.github.io) you
+        # may want to set VITE_BASE to '/' instead; this workflow assumes a
+        # project site and uses '/<repo>/' by default.
         env:
-          VITE_BASE: '/github-actions-sandbox/'
+          VITE_BASE: "/${{ github.event.repository.name }}/"
         run: npm run build
 
       - name: Upload artifact for GitHub Pages
