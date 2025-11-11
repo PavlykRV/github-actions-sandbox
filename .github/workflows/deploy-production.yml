@@ -38,7 +38,7 @@ jobs:
 
       - name: Build
         run: npm run build
-        with:
+        env:
           TEST_ENV_VARIABLE: ${{ env.TEST_ENV_VARIABLE }}
 
       - name: Upload artifact for GitHub Pages
