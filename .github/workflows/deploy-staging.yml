@@ -48,7 +48,7 @@ jobs:
           fi
  
 
-      - name: Build
+      - name: Build artifact
         run: npm run build
         env:
           TEST_ENV_VARIABLE: ${{ vars.TEST_ENV_VARIABLE }}
