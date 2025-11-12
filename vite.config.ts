@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
     // base can be configured via the VITE_BASE environment variable so
     // builds targeting GitHub Pages (project sites) can set the repository
     // subpath (e.g. '/my-repo/'). Defaults to '/'.
-    base: env.VITE_BASE || '/',
+    base: './',
     plugins: [react()],
     define: {
       // Make the environment variables available in the client code
