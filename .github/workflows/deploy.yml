@@ -29,13 +29,21 @@ jobs:
 
       - name: Set environment
         run: |
-          if [[ "${{github.ref_name}}" == "main" ]]; then
-            echo "ENV=production" >> $GITHUB_ENV
-            echo "BUCKET=action-sanbox-prod" >> $GITHUB_ENV
-          else
-            echo "ENV=staging" >> $GITHUB_ENV
-            echo "BUCKET=actions-sandbox" >> $GITHUB_ENV
-          fi
+          ENV=""
+          BUCKET=""
+          case "${{github.ref_name}}" in
+            "main")
+              ENV="production"
+              BUCKET="action-sanbox-prod"
+              ;;
+            "dev")
+              ENV="staging"
+              BUCKET="actions-sandbox"
+              ;;
+          esac
+
+          echo "ENV=$ENV" >> $GITHUB_ENV
+          echo "BUCKET=$BUCKET" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
