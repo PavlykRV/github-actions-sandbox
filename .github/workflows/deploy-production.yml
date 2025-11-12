@@ -16,71 +16,55 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+        - name: Checkout
+          uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: '22'
 
-      - name: Install dependencies
-        run: npm ci
+        - name: Install dependencies
+          run: npm ci
 
-      - name: Compute VITE_BASE
-        run: |
-          repo="${GITHUB_REPOSITORY##*/}"
-          if [[ "$repo" == *.github.io ]]; then
-            echo "VITE_BASE=/" >> $GITHUB_ENV
-          else
-            echo "VITE_BASE=/$repo/" >> $GITHUB_ENV
-          fi
+        - name: Export TEST_ENV_VARIABLE (production)
+          # Exports the environment-scoped secret named TEST_ENV_VARIABLE from
+          # the `staging` GitHub Environment into the job environment so the
+          # build can access it as $TEST_ENV_VARIABLE.
+          run: |
+            if [ -n "${{ secrets.TEST_ENV_VARIABLE }}" ]; then
+              echo "TEST_ENV_VARIABLE=${{ secrets.TEST_ENV_VARIABLE }}" >> $GITHUB_ENV
+            else
+              echo "TEST_ENV_VARIABLE=" >> $GITHUB_ENV
+            fi
 
-      - name: Build
-        run: npm run build
-        env:
-          TEST_ENV_VARIABLE: ${{ vars.TEST_ENV_VARIABLE }}
+        - name: Build (Vite)
+          run: npm run build
 
-      - name: Upload artifact for GitHub Pages
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: ./dist
+        - name: Upload `dist` artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: dist
+            path: ./dist
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
+      - name: Download `dist` artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: ./dist
 
-      # --- Production Deploy ---
-      - name: Deploy to Production
-        if: github.ref == 'refs/heads/main'
-        run: |
-          # Create runtime .vercel/project.json to pin the target project/org
-          mkdir -p .vercel
-          if [ -n "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
-            proj_id="${{ secrets.VERCEL_PROJECT_ID }}"
-          else
-            proj_id="${{ secrets.VERCEL_STAGING_PROJECT_ID }}"
-          fi
-          org_id="${{ secrets.VERCEL_ORG_ID }}"
-          printf '%s\n' "{\"projectId\":\"${proj_id}\",\"orgId\":\"${org_id}\"}" > .vercel/project.json
-          npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt --prod --yes --confirm
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      # --- Staging Deploy ---
-      - name: Deploy to Staging
-        if: github.ref == 'refs/heads/dev'
+      - name: Sync build to S3
         run: |
-          mkdir -p .vercel
-          # Prefer an explicit staging project id, fallback to VERCEL_PROJECT_ID
-          if [ -n "${{ secrets.VERCEL_STAGING_PROJECT_ID }}" ]; then
-            proj_id="${{ secrets.VERCEL_STAGING_PROJECT_ID }}"
-          else
-            proj_id="${{ secrets.VERCEL_PROJECT_ID }}"
-          fi
-          org_id="${{ secrets.VERCEL_ORG_ID }}"
-          printf '%s\n' "{\"projectId\":\"${proj_id}\",\"orgId\":\"${org_id}\"}" > .vercel/project.json
-          # For preview/staging, avoid --prod so Vercel creates a preview deploy
-          npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt --prod --yes --confirm
+          aws s3 sync ./dist s3://actions-sandbox --delete
