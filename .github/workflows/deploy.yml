@@ -2,7 +2,7 @@ name: Deploy Project
 
 on:
   workflow_run:
-    workflows: [Build Project]
+    workflows: ["Build Project"]
     types:
       - completed
     branches: ["main", "dev"]
