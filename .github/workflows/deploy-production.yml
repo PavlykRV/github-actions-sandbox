@@ -67,4 +67,4 @@ jobs:
 
       - name: Sync build to S3
         run: |
-          aws s3 sync ./dist s3://actions-sandbox --delete
+          aws s3 sync ./dist s3://action-sanbox-prod --delete
