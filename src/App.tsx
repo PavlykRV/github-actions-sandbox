@@ -18,7 +18,8 @@ function App() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h4>Unified</h4>
+      <h4>Unified CI/CD</h4>
+      <pre>checkin staging deploy from dev branch</pre>
       <h1>Vite + React</h1>
       <h2>Environment: {import.meta.env.TEST_ENV_VARIABLE}</h2>
       <div className="card">
