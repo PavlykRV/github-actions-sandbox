@@ -30,7 +30,7 @@ jobs:
         - name: Build Production (Vite)
           run: npm run build
           env: 
-            TEST_ENV_VARIABLE: ${{ secrets.TEST_ENV_VARIABLE }}
+            TEST_ENV_VARIABLE: ${{ vars.TEST_ENV_VARIABLE }}
 
         - name: Upload `dist` artifact
           uses: actions/upload-artifact@v4
