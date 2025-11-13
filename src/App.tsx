@@ -1,3 +1,4 @@
+import { version } from '../package.json';
 import { useState } from 'react';
 import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
@@ -18,6 +19,7 @@ function App() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
+      <h1>version: {version}</h1>
       <h4>Unified CI/CD</h4>
       <pre>checkin staging deploy from dev branch #4</pre>
       <h1>Vite + React</h1>
