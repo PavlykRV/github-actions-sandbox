@@ -19,6 +19,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Show commit hash
+        run: |
+          echo "Commit hash: ${{ github.sha }}"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
