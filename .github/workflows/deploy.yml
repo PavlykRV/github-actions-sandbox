@@ -34,6 +34,7 @@ jobs:
         run: npm run build
         env:
           TEST_ENV_VARIABLE: ${{ vars.TEST_ENV_VARIABLE }}
+          DEPLOY_ENV: ${{ github.ref == 'refs/heads/dev' && 'staging' || '' }}
 
       - name: Upload `dist` artifact
         uses: actions/upload-artifact@v4
