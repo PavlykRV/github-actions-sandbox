@@ -43,6 +43,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Determine release type
         id: release_type
         run: echo "type=${{ github.event.inputs.release_type || 'patch' }}" >> $GITHUB_OUTPUT
