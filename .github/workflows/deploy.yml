@@ -46,7 +46,9 @@ jobs:
       - name: Show the branch
         run: |
           echo "Triggered by branch: ${{ github.ref }}"
-          echo "Triggered by workflow_run: ${{ github.event.workflow_run }}"
+          echo "Triggered by branch name: ${{ github.ref_name }}"
+          echo "Deploying to environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
+          echo "Event: ${{ github.event.inputs.release_type || 'patch' }}"
       - name: Download 'dist' artifact 
         uses: actions/download-artifact@v4
         with:
@@ -57,7 +59,7 @@ jobs:
         run: |
           ENV=""
           BUCKET=""
-          case "${{github.ref}}" in
+          case "${{github.ref_name}}" in
             "main")
               ENV="production"
               BUCKET="action-sanbox-prod"
@@ -80,4 +82,6 @@ jobs:
 
       - name: Sync build to S3
         run: |
+          echo "Deploying to S3 bucket: $BUCKET"
+          echo "Environment: $ENV"
           aws s3 sync ./dist s3://$BUCKET --delete
