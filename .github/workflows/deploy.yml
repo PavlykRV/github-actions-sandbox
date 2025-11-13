@@ -19,15 +19,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show commit hash
-        run: |
-          echo "Commit hash: ${{ github.sha }}"
+      # - name: Show commit hash
+      #   run: |
+      #     echo "Commit hash: ${{ github.sha }}"
 
       - name: Get short commit hash
         run: |
           SHORT_HASH=$(git rev-parse --short HEAD)
-          echo "VITE_APP_COMMIT=$SHORT_HASH" >> $GITHUB_ENV
-          echo "Short commit hash: $SHORT_HASH"
+          echo "APP_COMMIT=$SHORT_HASH" >> $GITHUB_ENV
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -44,7 +43,7 @@ jobs:
         run: npm run build
         env:
           TEST_ENV_VARIABLE: ${{ vars.TEST_ENV_VARIABLE }}
-          DEPLOY_ENV: ${{ github.ref == 'refs/heads/dev' && 'staging' || '' }}
+          APP_ENVIRONMENT: ${{ github.ref == 'refs/heads/dev' && 'staging' || '' }}
 
       - name: Upload `dist` artifact
         uses: actions/upload-artifact@v4
