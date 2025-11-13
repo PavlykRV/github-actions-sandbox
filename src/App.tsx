@@ -19,7 +19,10 @@ function App() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1>version: {version}</h1>
+      <h1>
+        version: {version}
+        {import.meta.env.DEPLOY_ENV}
+      </h1>
       <h4>Unified CI/CD</h4>
       <pre>checkin staging deploy from dev branch #4</pre>
       <h1>Vite + React</h1>
