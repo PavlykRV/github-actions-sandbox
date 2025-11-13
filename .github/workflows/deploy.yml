@@ -23,6 +23,11 @@ jobs:
         run: |
           echo "Commit hash: ${{ github.sha }}"
 
+      - name: Get short commit hash
+        run: |
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          echo "VITE_APP_COMMIT=$SHORT_HASH" >> $GITHUB_ENV
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
