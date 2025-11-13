@@ -43,6 +43,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.event.workflow_run.head_branch == 'refs/heads/main' && 'production' || 'staging' }}
     steps:
+      - name: Show the branch
+        run: |
+          echo "Triggered by branch: ${{ github.event.workflow_run.head_branch }}"
       - name: Download 'dist' artifact 
         uses: actions/download-artifact@v4
         with:
