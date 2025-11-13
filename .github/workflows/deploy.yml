@@ -43,6 +43,20 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     steps:
+      - name: Determine release type
+        id: release_type
+        run: echo "type=${{ github.event.inputs.release_type || 'patch' }}" >> $GITHUB_OUTPUT
+
+      - name: Bump version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          npm version ${{ steps.release_type.outputs.type }} -m "chore: bump version to %s [skip ci]"
+
+      - name: Push version commit and tag
+        run: |
+          git push origin HEAD:${{ github.ref_name }} --follow-tags
+
       - name: Show the branch
         run: |
           echo "Triggered by branch: ${{ github.ref }}"
