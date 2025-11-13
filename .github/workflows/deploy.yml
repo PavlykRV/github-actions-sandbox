@@ -11,7 +11,7 @@ jobs:
     defaults:
       run:
         working-directory: .
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    environment: ${{ github.event.workflow_run.head_branch == 'refs/heads/main' && 'production' || 'staging' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,7 +41,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    environment: ${{ github.event.workflow_run.head_branch == 'refs/heads/main' && 'production' || 'staging' }}
     steps:
       - name: Download 'dist' artifact 
         uses: actions/download-artifact@v4
@@ -53,7 +53,7 @@ jobs:
         run: |
           ENV=""
           BUCKET=""
-          case "${{github.ref_name}}" in
+          case "${{github.event.workflow_run.head_branch}}" in
             "main")
               ENV="production"
               BUCKET="action-sanbox-prod"
