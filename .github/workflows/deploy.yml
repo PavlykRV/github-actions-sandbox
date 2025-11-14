@@ -44,7 +44,7 @@ jobs:
         env:
           TEST_ENV_VARIABLE: ${{ vars.TEST_ENV_VARIABLE }}
           APP_ENVIRONMENT: ${{ github.ref == 'refs/heads/dev' && 'staging' || '' }}
-          APP_COMMIT: ${{ env.SHORT_HASH }}
+          APP_COMMIT: ${{ github.ref == 'refs/heads/dev' && env.SHORT_HASH || '' }} 
 
       - name: Upload `dist` artifact
         uses: actions/upload-artifact@v4
