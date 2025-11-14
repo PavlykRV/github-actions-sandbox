@@ -23,9 +23,9 @@ jobs:
       #   run: |
       #     echo "Commit hash: ${{ github.sha }}"
 
-      - name: Get short commit hash
-        run: |
-          SHORT_HASH=${{ substring(github.sha, 0, 7) }}
+      # - name: Get short commit hash
+      #   run: |
+      #     SHORT_HASH=${{ substring(github.sha, 0, 7) }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -43,6 +43,7 @@ jobs:
         env:
           TEST_ENV_VARIABLE: ${{ vars.TEST_ENV_VARIABLE }}
           APP_ENVIRONMENT: ${{ github.ref == 'refs/heads/dev' && 'staging' || '' }}
+          APP_COMMIT: ${{ github.sha[0:7] }}
 
       - name: Upload `dist` artifact
         uses: actions/upload-artifact@v4
