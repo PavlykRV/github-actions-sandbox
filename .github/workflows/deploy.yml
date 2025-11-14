@@ -28,6 +28,16 @@ jobs:
           SHORT_HASH=${GITHUB_SHA:0:7}
           echo "SHORT_HASH=$SHORT_HASH" >> $GITHUB_ENV
 
+      - name: Set APP env vars
+        run: |
+          if [ "${GITHUB_REF}" = "refs/heads/dev" ]; then
+            echo "APP_ENVIRONMENT=staging" >> $GITHUB_ENV
+            echo "APP_COMMIT=${SHORT_HASH}" >> $GITHUB_ENV
+          else
+            echo "APP_ENVIRONMENT=" >> $GITHUB_ENV
+            echo "APP_COMMIT=" >> $GITHUB_ENV
+          fi
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -43,8 +53,6 @@ jobs:
         run: npm run build
         env:
           TEST_ENV_VARIABLE: ${{ vars.TEST_ENV_VARIABLE }}
-          APP_ENVIRONMENT: ${{ github.ref == 'refs/heads/dev' && 'staging' || '' }}
-          APP_COMMIT: ${{ github.ref == 'refs/heads/dev' && env.SHORT_HASH || '' }} 
 
       - name: Upload `dist` artifact
         uses: actions/upload-artifact@v4
