@@ -25,7 +25,7 @@ jobs:
 
       - name: Get short commit hash
         run: |
-          SHORT_HASH=${{ substr(github.sha, 0, 7) }}
+          SHORT_HASH=${{ substring(github.sha, 0, 7) }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
