@@ -14,7 +14,8 @@ export default defineConfig(({ mode }) => {
     define: {
       // Make the environment variables available in the client code
       'import.meta.env.TEST_ENV_VARIABLE': JSON.stringify(env.TEST_ENV_VARIABLE) || '',
-      'import.meta.env.DEPLOY_ENV': JSON.stringify(env.DEPLOY_ENV) || ''
+      'import.meta.env.APP_COMMIT': JSON.stringify(env.APP_COMMIT) || '',
+      'import.meta.env.APP_ENVIRONMENT': JSON.stringify(env.APP_ENVIRONMENT) || ''
     }
   };
 });

@@ -21,7 +21,8 @@ function App() {
       </div>
       <h1>
         version: {version}
-        {import.meta.env.DEPLOY_ENV}
+        {import.meta.env.APP_COMMIT ? `_${import.meta.env.APP_COMMIT}` : ''}
+        {import.meta.env.APP_ENVIRONMENT ? `.${import.meta.env.APP_ENVIRONMENT}` : ''}
       </h1>
       <h4>Unified CI/CD</h4>
       <pre>checkin staging deploy from dev branch #4</pre>
